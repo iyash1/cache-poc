@@ -56,13 +56,14 @@ def update_user(user_id: int, name: str):
 
     return {"status": "updated"}
 
-@app.post("/users/{user_id}")
-def update_user(user_id: int, name: str, email: str):
+@app.post("/users")
+def update_user(name: str, email: str):
     with conn.cursor() as cur:
         cur.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)",
+            "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id",
             (name, email)
         )
+        user_id = cur.fetchone()[0]
         conn.commit()
 
     # 2. Write to cache
