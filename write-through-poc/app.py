@@ -55,3 +55,18 @@ def update_user(user_id: int, name: str):
     print("CACHE UPDATED")
 
     return {"status": "updated"}
+
+@app.post("/users/{user_id}")
+def update_user(user_id: int, name: str, email: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO users (name, email) VALUES (%s, %s)",
+            (name, email)
+        )
+        conn.commit()
+
+    # 2. Write to cache
+    r.setex(f"user:{user_id}", 60, json.dumps({"id": user_id, "name": name, "email": email}))
+    print("CACHE UPDATED")
+
+    return {"status": "added"}

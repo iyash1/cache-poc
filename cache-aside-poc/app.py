@@ -55,3 +55,14 @@ def update_user(user_id: int, name: str):
     r.delete(f"user:{user_id}")
 
     return {"status": "updated"}
+
+@app.post("/users")
+def update_user(name: str, email: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO users (name, email) VALUES (%s, %s)",
+            (name, email)
+        )
+        conn.commit()
+
+    return {"status": "added"}

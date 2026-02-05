@@ -15,9 +15,17 @@ cache-poc/
 ┣ cache-aside-poc/
 ┃ ┗ app.py
 ┗ write-through-poc/
-┗ app.py
+┃  ┗ app.py
+┣ test_cache_stampede.py
+┗ users.json
 ```
 Each folder is a **self-contained FastAPI application** implementing a specific caching strategy.
+`test_cache_stampede.py` can be used to test the cache hit or miss. Run it as `python test_cache_stampede.py`. This program checks for records, updates it if found, inserts it if not. It uses the `users.json` file for mock users.
+The records in `users.json` is generated with the help of Mockaroo.
+
+The cache behviour could be tested using the library `hey`.
+
+Either using `hey` or `test_cache_stampede.py` the fetch, update or insert mechanism and timings change based on the type of cache you are testing, even though they might look the same on the surface going by the logs on terminal.
 
 ---
 
@@ -107,3 +115,31 @@ This helps observe:
 - Cache hit ratio
 - Latency differences
 - Cache stampede behavior
+
+---
+
+## Eviction Policy
+Since both the cache POCs use Redis as their cache, the eviction policy is managed by Redis by it's built-in eviction policy.
+### Eviction Policies in Redis
+| Policy           | Description                     |
+| ---------------- | ------------------------------- |
+| `allkeys-lru`    | Evict least recently used key   |
+| `allkeys-lfu`    | Evict least frequently used key |
+| `allkeys-random` | Random eviction                 |
+| `volatile-lru`   | LRU but only keys with TTL      |
+| `noeviction`     | Writes fail when full           |
+
+### Check the Redis currect eviction policy
+```bash
+redis-cli CONFIG GET maxmemory-policy
+```
+
+### Change the Redis eviction policy
+```bash
+redis-server --maxmemory <MEMORY_SIZE | 5mb, 50mb, etc.> --maxmemory-policy <EVICTION_POLICY>
+```
+
+### Checking the Redis stats
+```bash
+redis-cli INFO stats
+```
